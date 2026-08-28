@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Inbox{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">WhatsApp Inbox</h1>
+    {% if conversations %}
+        <ul class="bg-white rounded-lg shadow divide-y">
+            {% for conv in conversations %}
+                <li>
+                    <a href="/c/{{ conv.id }}" class="block p-4 hover:bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-medium text-gray-900">{{ conv.name or conv.wa_id }}</div>
+                                <div class="text-sm text-gray-500">{{ conv.wa_id }}</div>
+                            </div>
+                            <div class="text-xs text-gray-400">{{ conv.last_message_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            No conversations yet.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

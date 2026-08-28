@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ conversation.name or conversation.wa_id }} — WhatsApp Inbox{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto p-6">
+    <div class="mb-4">
+        <a href="/" class="text-sm text-blue-600 hover:underline">&larr; Back</a>
+        <h1 class="text-2xl font-bold text-gray-900">{{ conversation.name or conversation.wa_id }}</h1>
+        <div class="text-sm text-gray-500">{{ conversation.wa_id }}</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 mb-4 space-y-2 min-h-[200px]">
+        {% if messages %}
+            {% for msg in messages %}
+                {% if msg.direction == "outbound" %}
+                    <div class="flex justify-end">
+                        <div class="bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs break-words whitespace-pre-wrap">{{ msg.body }}</div>
+                    </div>
+                {% else %}
+                    <div class="flex justify-start">
+                        <div class="bg-gray-200 text-gray-900 rounded-lg px-4 py-2 max-w-xs break-words whitespace-pre-wrap">{{ msg.body }}</div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500 text-center">No messages yet.</p>
+        {% endif %}
+    </div>
+    <form method="post" action="/c/{{ conversation.id }}/send" class="flex gap-2">
+        <textarea name="body" required rows="2" placeholder="Type a message..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 self-end">Send</button>
+    </form>
+</div>
+{% endblock %}
