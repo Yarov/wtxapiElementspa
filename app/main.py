@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.database import init_db
+from app.core.errors import install_error_handlers
 from app.core.whatsapp_client import build_client
 from app.web.routes import router as web_router
 
@@ -25,6 +26,7 @@ async def lifespan(app: FastAPI) -> None:
 
 
 app = FastAPI(title="WhatsApp Inbox", lifespan=lifespan)
+install_error_handlers(app)
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(web_router)
 static_dir = os.path.join(os.path.dirname(__file__), "static")

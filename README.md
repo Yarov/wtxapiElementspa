@@ -43,6 +43,9 @@ The SQLite file is created at `./app.db` on first start.
 pytest -v
 ```
 
+> Tip: the system `python` may be 3.9 which can't import `UTC` from `datetime`.
+> Use your venv interpreter explicitly: `.venv/bin/pytest`.
+
 ## Meta webhook setup
 
 1. **App Dashboard → Webhooks → Edit**:
