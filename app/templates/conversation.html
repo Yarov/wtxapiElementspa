@@ -25,6 +25,7 @@
         {% endif %}
     </div>
     <form method="post" action="/c/{{ conversation.id }}/send" class="flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <textarea name="body" required rows="2" placeholder="Type a message..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
         <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 self-end">Send</button>
     </form>

@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN: str
     VERIFY_TOKEN: str
     APP_SECRET: str
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
     DEBUG: bool = False
 

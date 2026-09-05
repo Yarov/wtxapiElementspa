@@ -82,6 +82,21 @@ async def test_handshake_valid_returns_challenge(client):
     assert r.text == "12345"
 
 
+async def test_handshake_is_public(client):
+    r = await client.get(
+        "/api/v1/webhook",
+        params={
+            "hub.mode": "subscribe",
+            "hub.verify_token": VERIFY_TOKEN,
+            "hub.challenge": "12345",
+        },
+        headers={"Authorization": ""},
+    )
+
+    assert r.status_code == 200
+    assert r.text == "12345"
+
+
 async def test_handshake_bad_token_returns_403(client):
     r = await client.get(
         "/api/v1/webhook",
@@ -296,8 +311,6 @@ async def test_inbound_reuses_existing_conversation_by_wa_id(client, session):
     )
     assert r1.status_code == 200
 
-    # BackgroundTask runs after ack — give it a moment to commit
-    await asyncio.sleep(0.05)
     convs = (await session.execute(select(Conversation))).scalars().all()
     assert len(convs) == 1, f"expected 1 conversation after first POST, got {len(convs)}"
     original_id = convs[0].id
@@ -313,9 +326,7 @@ async def test_inbound_reuses_existing_conversation_by_wa_id(client, session):
     )
     assert r2.status_code == 200
 
-    # The webhook persists via a BackgroundTask that uses its own AsyncSessionLocal
-    # session, separate from the `session` fixture. Verify via a fresh session so
-    # we definitely see the post-POST state without identity-map staleness.
+    # Verify through a fresh session to avoid identity-map staleness.
     from app.core.database import AsyncSessionLocal
 
     async with AsyncSessionLocal() as s2:

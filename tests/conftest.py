@@ -1,9 +1,12 @@
+import base64
 import os
 
 os.environ.setdefault("PHONE_NUMBER_ID", "123456")
 os.environ.setdefault("ACCESS_TOKEN", "test-token")
 os.environ.setdefault("VERIFY_TOKEN", "test-verify")
 os.environ.setdefault("APP_SECRET", "test-secret")
+os.environ.setdefault("ADMIN_USERNAME", "test-admin")
+os.environ.setdefault("ADMIN_PASSWORD", "test-password")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 import pytest_asyncio
@@ -24,13 +27,11 @@ test_engine = create_async_engine(
 TestSessionLocal = async_sessionmaker(test_engine, expire_on_commit=False)
 
 import app.api.dependencies as _deps_mod  # noqa: E402
-import app.api.v1.endpoints.webhooks as _wh_mod  # noqa: E402
 import app.core.database as _db_mod  # noqa: E402
 
 _db_mod.engine = test_engine
 _db_mod.AsyncSessionLocal = TestSessionLocal
 _deps_mod.AsyncSessionLocal = TestSessionLocal
-_wh_mod.AsyncSessionLocal = TestSessionLocal
 
 
 async def _override_init_db() -> None:
@@ -46,6 +47,8 @@ TEST_SETTINGS = Settings(
     ACCESS_TOKEN="test-token",
     VERIFY_TOKEN="test-verify",
     APP_SECRET="test-secret",
+    ADMIN_USERNAME="test-admin",
+    ADMIN_PASSWORD="test-password",
     DATABASE_URL="sqlite+aiosqlite:///:memory:",
     DEBUG=False,
 )
@@ -89,8 +92,13 @@ async def client(whatsapp):
 
     app.state.whatsapp = whatsapp
 
+    credentials = base64.b64encode(b"test-admin:test-password").decode()
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": f"Basic {credentials}"},
+    ) as ac:
         yield ac
 
     app.dependency_overrides.clear()

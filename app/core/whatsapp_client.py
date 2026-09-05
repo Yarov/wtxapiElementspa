@@ -39,7 +39,7 @@ class WhatsAppClient:
         headers = {"Authorization": f"Bearer {self._token}"}
         r = await self._client.post(self._url, json=payload, headers=headers)
         if r.status_code >= 400:
-            raise WhatsAppAPIError(f"{r.status_code}: {r.text}")
+            raise WhatsAppAPIError(f"Cloud API returned HTTP {r.status_code}")
         data = r.json()
         return data["messages"][0]["id"]
 

@@ -11,12 +11,12 @@ Jinja2 + htmx for the dashboard (no JS build step). One async `httpx` client is
 shared across the app for outbound requests to the Cloud API.
 
 ```
-Meta webhook ──► /api/v1/webhook (verify + HMAC) ──► BackgroundTasks ──► SQLite
-Dashboard   ──► /api/v1/messages (POST)              ──► graph.facebook.com
+Meta webhook ──► /api/v1/webhook (verify + HMAC) ──► SQLite
+Dashboard   ──► /api/v1/messages (POST)           ──► graph.facebook.com
 ```
 
-Inbound acknowledgements return within ~500 ms; persistence and outbound calls
-happen off the request hot path.
+Inbound messages are committed before the webhook returns `200`, preventing
+message loss during a restart or deployment.
 
 ## Prerequisites
 
@@ -35,7 +35,10 @@ pip install -e .[dev]
 uvicorn app.main:app --reload
 ```
 
-The SQLite file is created at `./app.db` on first start.
+Local runs create SQLite at `./app.db`; Docker deployments override this to
+`/app/data/app.db` so the database lives in the persistent volume.
+The dashboard and outbound API use HTTP Basic authentication configured with
+`ADMIN_USERNAME` and `ADMIN_PASSWORD`.
 
 ## Run tests
 
@@ -67,20 +70,38 @@ listed above. The dashboard "Send" form posts to `/api/v1/messages`, which
 calls `POST https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages` and
 records the outbound message in SQLite on a 2xx response.
 
-## Deploy on Railway
+## Deploy on Coolify
 
-1. Link the repository in Railway.
-2. Set the same env vars from `.env.example` in the Railway dashboard.
-3. Deploy — `railway.json` configures the Dockerfile build and
-   `uvicorn app.main:app --host 0.0.0.0 --port $PORT` as the start command.
+1. Create a **Docker Compose** resource from this Git repository.
+2. Set the compose file to `/docker-compose.coolify.yml`.
+3. Set these environment variables in Coolify:
+   - `PHONE_NUMBER_ID`
+   - `ACCESS_TOKEN`
+   - `VERIFY_TOKEN`
+   - `APP_SECRET`
+   - `ADMIN_USERNAME`
+   - `ADMIN_PASSWORD`
+4. Assign `https://wtxapi.elementspa.mx:8000` to the `app` service. The `:8000`
+   tells Coolify which internal container port to proxy; the public URL remains
+   standard HTTPS.
+5. Keep one replica and one Uvicorn process because SQLite is used.
+6. Deploy and set `/api/v1/health` as the healthcheck path.
 
-The project ships with a multi-stage-ready `Dockerfile` (Python 3.12-slim) and
-`railway.json`; the SQLite file lives on the container's ephemeral filesystem,
-so a Railway volume is required if persistence across restarts/deploys matters
-(not needed for v1 testing).
+The Coolify compose file declares a persistent named volume at `/app/data` and
+forces `DATABASE_URL=sqlite+aiosqlite:////app/data/app.db`. Back up the complete
+volume because SQLite WAL mode also creates `app.db-wal` and `app.db-shm`.
+
+After deployment, verify:
+
+```bash
+curl https://wtxapi.elementspa.mx/api/v1/health
+# {"status":"ok"}
+```
+
+Use `https://wtxapi.elementspa.mx/api/v1/webhook` as the callback URL in Meta.
 
 ## Notes
 
-The dashboard has no authentication. Protect it at the network layer
-(Railway private networking, Tailscale, or basic auth on a reverse proxy).
-All env vars are listed in `.env.example`.
+The webhook and healthcheck are public. The dashboard and outbound-message API
+require Basic Auth. API documentation is disabled when `DEBUG=false`. All env
+vars are listed in `.env.example`; never commit `.env` or Meta credentials.

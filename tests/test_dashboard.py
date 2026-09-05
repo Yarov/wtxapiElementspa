@@ -6,6 +6,7 @@ import respx
 from httpx import Response
 from sqlalchemy import select
 
+from app.core.security import create_csrf_token
 from app.models.conversation import Conversation
 from app.models.message import Message, MessageDirection
 
@@ -87,7 +88,10 @@ async def test_send_form_redirects_to_thread(client, session):
 
         r = await client.post(
             f"/c/{conv_id}/send",
-            data={"body": "hi"},
+            data={
+                "body": "hi",
+                "csrf_token": create_csrf_token(str(conv_id), "test-secret"),
+            },
             follow_redirects=False,
         )
 
@@ -97,3 +101,25 @@ async def test_send_form_redirects_to_thread(client, session):
     msg = (await session.execute(select(Message).where(Message.wamid == "wamid.OUT"))).scalar_one()
     assert msg.body == "hi"
     assert msg.direction == MessageDirection.outbound
+
+
+async def test_dashboard_requires_admin_auth(client):
+    r = await client.get("/", headers={"Authorization": ""})
+
+    assert r.status_code == 401
+    assert r.headers["www-authenticate"] == "Basic"
+
+
+async def test_send_form_rejects_invalid_csrf_token(client, session):
+    now = datetime.now(UTC)
+    conv = Conversation(wa_id="5491155550001", name="Alice", last_message_at=now)
+    session.add(conv)
+    await session.commit()
+
+    r = await client.post(
+        f"/c/{conv.id}/send",
+        data={"body": "hi", "csrf_token": "invalid"},
+        follow_redirects=False,
+    )
+
+    assert r.status_code == 403

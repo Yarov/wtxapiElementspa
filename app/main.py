@@ -25,7 +25,14 @@ async def lifespan(app: FastAPI) -> None:
         await wa.close()
 
 
-app = FastAPI(title="WhatsApp Inbox", lifespan=lifespan)
+settings = get_settings()
+app = FastAPI(
+    title="WhatsApp Inbox",
+    lifespan=lifespan,
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
+)
 install_error_handlers(app)
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(web_router)

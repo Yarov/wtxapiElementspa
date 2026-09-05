@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      PHONE_NUMBER_ID: ${PHONE_NUMBER_ID:?}
+      ACCESS_TOKEN: ${ACCESS_TOKEN:?}
+      VERIFY_TOKEN: ${VERIFY_TOKEN:?}
+      APP_SECRET: ${APP_SECRET:?}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?}
+      DATABASE_URL: sqlite+aiosqlite:////app/data/app.db
+      DEBUG: "false"
+    volumes:
+      - appdb:/app/data
+
+volumes:
+  appdb:

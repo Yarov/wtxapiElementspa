@@ -1,9 +1,9 @@
 # ruff: noqa: B008  - FastAPI Depends() in argument defaults is the documented idiom
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_settings
+from app.api.dependencies import get_db, get_settings
 from app.core.config import Settings
-from app.core.database import AsyncSessionLocal
 from app.core.security import verify_signature
 from app.schemas.webhook import WebhookPayload
 from app.services.webhook_service import handle_inbound
@@ -26,17 +26,12 @@ async def verify(
 @router.post("")
 async def receive(
     request: Request,
-    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict[str, str]:
     raw = await request.body()
     if not verify_signature(raw, request.headers.get("X-Hub-Signature-256"), settings.APP_SECRET):
         raise HTTPException(status_code=401, detail="Invalid signature")
     payload = WebhookPayload.model_validate_json(raw)
-
-    async def _persist() -> None:
-        async with AsyncSessionLocal() as session:
-            await handle_inbound(payload, session)
-
-    background_tasks.add_task(_persist)
+    await handle_inbound(payload, db)
     return {"status": "ok"}

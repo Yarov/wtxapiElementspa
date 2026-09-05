@@ -2,12 +2,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_db, get_send_service
+from app.api.dependencies import get_db, get_send_service, require_admin
 from app.core.whatsapp_client import WhatsAppAPIError
 from app.schemas.message import SendMessageRequest, SendMessageResponse
 from app.services.send_service import SendService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.post("", response_model=SendMessageResponse)
@@ -19,5 +19,5 @@ async def send(
     try:
         wamid = await svc.send_and_persist(db, body.to, body.body)
     except WhatsAppAPIError as e:
-        raise HTTPException(status_code=502, detail=f"Cloud API error: {e}") from e
+        raise HTTPException(status_code=502, detail="Cloud API request failed") from e
     return SendMessageResponse(wamid=wamid, status="sent")

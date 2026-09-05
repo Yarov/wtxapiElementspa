@@ -3,7 +3,7 @@
 import hashlib
 import hmac
 
-from app.core.security import verify_signature
+from app.core.security import create_csrf_token, verify_csrf_token, verify_signature
 
 
 def test_valid_signature():
@@ -30,3 +30,11 @@ def test_tampered_body():
     body = b'{"hello":"world"}'
     sig = "sha256=" + hmac.new(b"secret", body, hashlib.sha256).hexdigest()
     assert verify_signature(b'{"hello":"WORLD"}', sig, "secret") is False
+
+
+def test_csrf_token_is_bound_to_subject_and_secret():
+    token = create_csrf_token("42", "secret")
+
+    assert verify_csrf_token("42", token, "secret") is True
+    assert verify_csrf_token("43", token, "secret") is False
+    assert verify_csrf_token("42", token, "wrong") is False

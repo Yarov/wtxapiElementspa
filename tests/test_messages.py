@@ -64,3 +64,14 @@ async def test_post_send_message_cloud_api_400_returns_502(client, session):
 
     msgs = (await session.execute(select(Message))).scalars().all()
     assert msgs == []
+
+
+async def test_post_send_message_requires_admin_auth(client):
+    r = await client.post(
+        "/api/v1/messages",
+        json={"to": "5491155550001", "body": "hi"},
+        headers={"Authorization": ""},
+    )
+
+    assert r.status_code == 401
+    assert r.headers["www-authenticate"] == "Basic"
