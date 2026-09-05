@@ -67,7 +67,7 @@ request bytes — payloads with invalid or missing signatures are rejected with
 
 Set `ACCESS_TOKEN` to a system-user token with the two WhatsApp permissions
 listed above. The dashboard "Send" form posts to `/api/v1/messages`, which
-calls `POST https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages` and
+calls `POST https://graph.facebook.com/v26.0/{PHONE_NUMBER_ID}/messages` and
 records the outbound message in SQLite on a 2xx response.
 
 ## Deploy on Coolify

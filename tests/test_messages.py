@@ -8,7 +8,7 @@ from app.models.conversation import Conversation
 from app.models.message import Message, MessageDirection
 
 WA_PHONE_ID = "123456"
-CLOUD_URL = f"https://graph.facebook.com/v20.0/{WA_PHONE_ID}/messages"
+CLOUD_URL = f"https://graph.facebook.com/v26.0/{WA_PHONE_ID}/messages"
 
 
 async def test_post_send_message_returns_wamid_and_persists(client, session):

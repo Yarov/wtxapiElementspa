@@ -12,7 +12,7 @@ class WhatsAppClient:
         self,
         phone_id: str,
         token: str,
-        version: str = "v20.0",
+        version: str = "v26.0",
     ) -> None:
         self._phone_id = phone_id
         self._token = token
@@ -45,4 +45,8 @@ class WhatsAppClient:
 
 
 def build_client(settings: Settings) -> WhatsAppClient:
-    return WhatsAppClient(settings.PHONE_NUMBER_ID, settings.ACCESS_TOKEN)
+    return WhatsAppClient(
+        settings.PHONE_NUMBER_ID,
+        settings.ACCESS_TOKEN,
+        settings.GRAPH_API_VERSION,
+    )

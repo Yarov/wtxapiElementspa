@@ -49,6 +49,7 @@ TEST_SETTINGS = Settings(
     APP_SECRET="test-secret",
     ADMIN_USERNAME="test-admin",
     ADMIN_PASSWORD="test-password",
+    GRAPH_API_VERSION="v26.0",
     DATABASE_URL="sqlite+aiosqlite:///:memory:",
     DEBUG=False,
 )

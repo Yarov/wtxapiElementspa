@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     APP_SECRET: str
     ADMIN_USERNAME: str
     ADMIN_PASSWORD: str
+    GRAPH_API_VERSION: str = "v26.0"
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
     DEBUG: bool = False
 
