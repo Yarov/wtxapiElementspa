@@ -73,7 +73,7 @@ records the outbound message in SQLite on a 2xx response.
 ## Deploy on Coolify
 
 1. Create a **Docker Compose** resource from this Git repository.
-2. Set the compose file to `/docker-compose.coolify.yml`.
+2. Use the default compose file `/docker-compose.yaml`.
 3. Set these environment variables in Coolify:
    - `PHONE_NUMBER_ID`
    - `ACCESS_TOKEN`
@@ -99,6 +99,12 @@ curl https://wtxapi.elementspa.mx/api/v1/health
 ```
 
 Use `https://wtxapi.elementspa.mx/api/v1/webhook` as the callback URL in Meta.
+
+For local Docker development, use the compose file that publishes port 8000:
+
+```bash
+docker compose -f docker-compose.local.yml up -d --build
+```
 
 ## Notes
 
